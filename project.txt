@@ -1,0 +1,58 @@
+// keystudio Smart Home KS5009
+// Ardiono ESP32
+// Working on VS code with Arduino CLI
+
+// INPUT and SENSOR
+  // btn_1, btn2, person_sensor, gas, water, DHT11 (Temperature, Humidity), RFID reader
+  // OUTPUT and ACTUATOR
+  // yellow_led, fan (speed and direction), window_servo, buzzer, NeoPixel strip, LCD display
+
+  // States and actions
+    // closed 
+      // yellow_led off, fan off, window_servo closed, buzzer off, NeoPixel strip off
+      // if presence detected ==> LCD display: "Enter RFID to access" | by 3 seconds
+      // else LCD display: "House Closed"
+
+    // opening
+      // RFID reader reads valid card
+        // LCD display: "Access Granted"
+        // yellow_led blinking once
+        // buzzer sound (opening tone)
+        // NeoPixel strip: green for 5 seconds | then white light
+
+        // if temperature > 20C ==> window_openServo() 
+        // if temperature > 25C ==> setFan(FORWARD, speed_val)
+
+    // opened
+      // LCD display: the actual funcionality setted
+      // btn1 switche funcionality: 
+      // btn2 toggles funcionality:
+      // functionality:
+        // yellow_led breathing
+        // NeoPixel strip: skip to next color mode
+        // window_servo: toggle open/close
+        // fan: skip to next speed mode
+        // house closing 
+
+    // altert | gas detected
+      // store the house state 
+      // set all
+      // yellow_led blinking fast
+      // NeoPixel strip: red
+      // buzzer sound (alert tone)
+      // setFan(REVERSE, speed_val)
+      // servo_window open
+      // LCD display: "Gas Leak Detected!"
+
+    // gas cleared
+      // restore the house state
+
+  // closing 
+    // if no person detected for 10 minutes
+      // yellow_led off
+      // buzzer sound (closing tone)
+      // NeoPixel strip: blue for 5 seconds | then off
+      // setFan off
+      // window_servo closed
+      // LCD display: "House Closed"
+    
