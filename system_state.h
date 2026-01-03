@@ -35,8 +35,8 @@
 #define WINDOW_CLOSED_ANGLE 0
 #include "window.h"
 
-#define FAN_FORWARD_PIN 19
-#define FAN_REVERSE_PIN 18
+#define FAN_FORWARD_PIN 18
+#define FAN_REVERSE_PIN 19
 #include "fan.h"
 
 #define BUZZER_GPIO25 25
