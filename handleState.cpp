@@ -114,7 +114,7 @@ void handleAlert()
   Serial.println("Alert state handled.");
 }
 
-void handleInputsActions()
+void handleAutomations()
 {
   // if water level is too high
   // set the window to close immediately

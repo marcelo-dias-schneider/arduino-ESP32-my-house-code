@@ -163,7 +163,7 @@ void updateSystemState()
 
 void buildOutputsAction()
 {
-  handleInputsActions();
+  handleAutomations();
 
   // Only run the handler once when entering a new state
   if (systemState.current == systemState.lastHandled)

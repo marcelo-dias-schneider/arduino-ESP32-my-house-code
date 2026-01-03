@@ -9,6 +9,6 @@ void handleClosed();
 void handleOpening();
 void handleOpen();
 void handleAlert();
-void handleInputsActions();
+void handleAutomations();
 
 #endif
