@@ -118,8 +118,11 @@ void readInputs()
   inputs.gasDetected = !digitalRead(gas_sensor);
   inputs.waterLevel = analogRead(water_sensor);
   inputs.nfcUid = nfcRead();
-  inputs.temperature = readTemperature();
-  inputs.humidity = readHumidity();
+  {
+    DhtReading dr = readDht();
+    inputs.temperature = dr.temperature;
+    inputs.humidity = dr.humidity;
+  }
 }
 
 void updateSystemState()
@@ -271,7 +274,6 @@ void applyOutputs()
     setMessageLCD(outputs.lcd.messages, outputs.lcd.count, outputs.lcd.delayTime);
   }
   outputs.lcd.lastHash = outputs.lcd.currentHash;
-  lcdLoop();
 
   // BUZZER
   if (outputs.buzzer.action != outputs.buzzer.state)

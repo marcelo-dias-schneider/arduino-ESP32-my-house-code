@@ -47,12 +47,17 @@ Each state has a handler in `handleState.cpp` (e.g., `handleClosing()`, `handleC
 ## System Automations (rules)
 
 - When in `OPEN` state:
-	- If `waterLevel >= 1500` OR `temperature < 18°C`, the system will command the window to CLOSE immediately and update LCD with the latest weather/readings.
-	- Otherwise the window remains OPEN and LCD shows current weather.
-- If `gasDetected` is true, the system switches to `ALERT` state: opens window, sets fan to `REVERSE` at high speed, blinks LEDs, and sets buzzer to `ALARM_GAS`.
-- NFC whitelist (`NFC_GRANTED_UIDS`) is used to grant access and trigger transitions (e.g., `GRANTED_ACCESS` buzzer and `OPENING` sequence) when a recognized UID is presented.
+	- Window control is driven by temperature only:
+		- If `temperature <= 18°C` the system commands the window to CLOSE.
+		- If `temperature > 18°C` the system commands the window to OPEN.
+	- LCD weather message (`outputs.lcd.messages[1]`) displays temperature, humidity and water-level readings and will update when any of those three readings change. Updates are throttled to at most once every 500 ms and the display hash is refreshed so the LCD will redraw the new message.
+	- Fan automation:
+		- If `temperature >= 27°C` the fan is turned ON in `FORWARD` direction at configured speed.
+		- If `temperature < 27°C` the fan is turned OFF.
+- If `gasDetected` is true the system switches to `ALERT` state: opens the window, sets the fan to `REVERSE` at high speed, blinks LEDs, and sets the buzzer to `ALARM_GAS`.
+- NFC whitelist (`NFC_GRANTED_UIDS`) grants access and triggers the `GRANTED_ACCESS` buzzer and `OPENING` sequence when a recognized UID is presented.
 
-Other automations are implemented by combining input checks inside `handleAutomations()` and per-state handlers in `handleState.cpp`.
+Other automations are implemented by combining input checks inside `handleAutomations()` and per-state handlers in `handleState.cpp`. Previous behavior that used water-level alone to force a close has been replaced by the current temperature-driven window logic; water-level remains shown on the LCD and can influence manual decisions.
 
 ## Wiring / Notes
 
@@ -74,5 +79,3 @@ arduino-cli compile --fqbn esp32:esp32:esp32
 - `my-code.ino` — main sketch entrypoint.
 - `system_state.h` / `handleState.cpp` — state machine and handlers.
 - `dht.*`, `nfc.*`, `window.*`, `fan.*`, `buzzer.*`, `lcd.*`, `led.*`, `neo-pixel.*` — drivers for sensors and actuators.
-
-If you'd like, I can add a wiring diagram, expand the automations section into a flow chart, or annotate the code with in-line comments. 

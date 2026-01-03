@@ -7,7 +7,13 @@
 
 extern dht11 DHT11;
 
-int readTemperature();
-int readHumidity();
+struct DhtReading
+{
+	int temperature;
+	int humidity;
+	int status; // DHTLIB_OK or error code
+};
+
+DhtReading readDht();
 
 #endif
