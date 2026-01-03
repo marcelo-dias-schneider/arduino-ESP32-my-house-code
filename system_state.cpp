@@ -1,10 +1,10 @@
 #include "system_state.h"
-// #include "neo-pixel.h" //////////////////////
 
 // define shared variables (storage)
 SystemState systemState;
 InputsState inputs;
 OutputsState outputs;
+PrevEnvReadings prevEnvReadings;
 
 // Delay for showing animations (milliseconds)
 const unsigned long CLOSING_DELAY_MS = 2000UL;
@@ -101,6 +101,13 @@ void setupSystemState()
   outputs.lcd.lastHash = "";
 
   outputs.buzzer.action = BuzzerActuatorState::WELCOME;
+
+  // initialize previous environmental readings to sentinel values
+  prevEnvReadings.temperature = -9999;
+  prevEnvReadings.humidity = -9999;
+  prevEnvReadings.waterLevel = -999999;
+  prevEnvReadings.lastWeatherUpdate = 0;
+  prevEnvReadings.lastNoPersonMillis = 0;
 }
 
 void readInputs()
@@ -300,9 +307,21 @@ void applyOutputs()
 
 void logOutputsState()
 {
+  Serial.println("##### States #####");
   Serial.println("Current State: " + String(static_cast<int>(systemState.current)));
   Serial.println("Previous State: " + String(static_cast<int>(systemState.previous)));
   Serial.println("Last Handled State: " + String(static_cast<int>(systemState.lastHandled)));
+  Serial.println("                         ");
+  Serial.println("##### Inputs #####");
+  Serial.println("Button 1 Pressed: " + String(inputs.btn1Pressed));
+  Serial.println("Button 2 Pressed: " + String(inputs.btn2Pressed));
+  Serial.println("Presence Detected: " + String(inputs.presenceDetected));
+  Serial.println("Gas Detected: " + String(inputs.gasDetected));
+  Serial.println("Water Level: " + String(inputs.waterLevel));
+  Serial.println("Temperature: " + String(inputs.temperature));
+  Serial.println("Humidity: " + String(inputs.humidity));  
+  Serial.println("                         ");
+  Serial.println("##### Outputs #####");
   Serial.println("Yellow LED Action: " + String(static_cast<int>(outputs.yellowLed.action)));
   Serial.println("LED NeoPixel Action: " + String(static_cast<int>(outputs.ledNeoPixel.action)));
   Serial.println("Window Action: " + String(static_cast<int>(outputs.window.action)));

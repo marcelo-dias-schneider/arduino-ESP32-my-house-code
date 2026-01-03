@@ -178,6 +178,21 @@ struct OutputsState
 // Shared variables
 extern OutputsState outputs;
 
+// Previous environmental readings used by automations (to detect changes)
+#define DELAY_UPDATE_INTERVAL 500UL
+#define WATER_LEVEL_THRESHOLD 1500
+#define NO_PERSON_CLOSE_MS 60000UL
+
+struct PrevEnvReadings
+{
+  int temperature;
+  int humidity;
+  int waterLevel;
+  unsigned long lastWeatherUpdate;
+  unsigned long lastNoPersonMillis;
+};
+extern PrevEnvReadings prevEnvReadings;
+
 // Shared helper function prototype
 void setPins();
 void setSystemState(SystemStates newState);

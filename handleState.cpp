@@ -116,29 +116,96 @@ void handleAlert()
 
 void handleAutomations()
 {
-  // if water level is too high
-  // set the window to close immediately
   if (systemState.current == SystemStates::OPEN)
   {
-    if (inputs.waterLevel >= 1500 || inputs.temperature < 18)
+    // Track previous environmental readings and update LCD[1] only when a reading changes
+    String newWeather = readWeather();
+
+    if (outputs.lcd.count < 2)
+    {
+      outputs.lcd.count = 2;
+      outputs.lcd.messages[1] = newWeather;
+      outputs.lcd.delayTime = 3000;
+      outputs.lcd.currentHash = String(millis());
+      prevEnvReadings.temperature = inputs.temperature;
+      prevEnvReadings.humidity = inputs.humidity;
+      prevEnvReadings.waterLevel = inputs.waterLevel;
+    }
+    else
+    {
+      bool changed = false;
+      if (inputs.temperature != prevEnvReadings.temperature)
+        changed = true;
+      if (inputs.humidity != prevEnvReadings.humidity)
+        changed = true;
+      if (inputs.waterLevel != prevEnvReadings.waterLevel)
+        changed = true;
+
+      if (changed)
+      {
+        if (millis() - prevEnvReadings.lastWeatherUpdate >= DELAY_UPDATE_INTERVAL)
+        {
+          outputs.lcd.messages[1] = newWeather;
+          outputs.lcd.count = 2;
+          outputs.lcd.delayTime = 3000;
+          outputs.lcd.currentHash = String(millis());
+          prevEnvReadings.temperature = inputs.temperature;
+          prevEnvReadings.humidity = inputs.humidity;
+          prevEnvReadings.waterLevel = inputs.waterLevel;
+          prevEnvReadings.lastWeatherUpdate = millis();
+        }
+        // otherwise skip until interval elapses
+      }
+    }
+
+    // Window open/close logic driven only by temperature now
+    if (inputs.temperature <= 18)
     {
       outputs.window.action = WindowActuatorState::CLOSED;
-      outputs.window.delayMs = 0;
-
-      outputs.lcd.messages[1] = readWeather();
-      outputs.lcd.count = 2;
-      outputs.lcd.delayTime = 3000;
-      outputs.lcd.currentHash = "jmh67j8k9a1s23d4f5g";
+      outputs.window.delayMs = 2000UL;
     }
     else
     {
       outputs.window.action = WindowActuatorState::OPEN;
-      outputs.window.delayMs = 0;
+      outputs.window.delayMs = 2000UL;
+    }
 
-      outputs.lcd.messages[1] = readWeather();
-      outputs.lcd.count = 2;
-      outputs.lcd.delayTime = 3000;
-      outputs.lcd.currentHash = "po6d4f5g6h7j8k9a1s2";
+    // Fan automation: turn ON (FORWARD) when temperature >= 27, otherwise OFF
+    if (inputs.temperature >= 27)
+    {
+      outputs.fan.directionAction = FanDirectionActuatorState::FORWARD;
+      outputs.fan.speedAction = 250;
+    }
+    else
+    {
+      outputs.fan.directionAction = FanDirectionActuatorState::OFF;
+      outputs.fan.speedAction = 0;
+    }
+
+    // Presence-based auto-close: if OPEN and no person detected, start 60s timer and close
+    if (!inputs.presenceDetected)
+    {
+      if (prevEnvReadings.lastNoPersonMillis == 0)
+      {
+        prevEnvReadings.lastNoPersonMillis = millis();
+      }
+      else if (millis() - prevEnvReadings.lastNoPersonMillis >= NO_PERSON_CLOSE_MS)
+      {
+        if (systemState.current != SystemStates::CLOSING)
+          setSystemState(SystemStates::CLOSING);
+      }
+    }
+    else
+    {
+      // reset timer when presence detected
+      prevEnvReadings.lastNoPersonMillis = 0;
+    }
+
+    // Water level: Close the window if water level too high
+    if (inputs.waterLevel >= WATER_LEVEL_THRESHOLD)
+    {
+      outputs.window.action = WindowActuatorState::CLOSED;
+      outputs.window.delayMs = 0;
     }
   }
 }
