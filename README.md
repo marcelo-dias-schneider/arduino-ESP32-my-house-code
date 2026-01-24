@@ -1,4 +1,5 @@
-# Keyestudio IoT Smart Home Kit for ESP32 
+# Keyestudio IoT Smart Home Kit for ESP32
+
 [Keyestudio Documentations](https://docs.keyestudio.com/projects/KS5009/en/latest/docs/)
 
 # Arduino Home & Safety Controller
@@ -9,7 +10,7 @@ This project implements a simple state-driven home and safety controller for an 
 
 - The core is a state machine defined in `system_state.h` and handled in `handleState.cpp`.
 - Each loop cycle: `readInputs()` → `updateSystemState()` → `buildOutputsAction()` → `applyOutputs()`.
-- States determine the desired actuator *actions*; a separate apply step enforces those actions on hardware.
+- States determine the desired actuator _actions_; a separate apply step enforces those actions on hardware.
 
 ## Inputs
 
@@ -49,13 +50,13 @@ Each state has a handler in `handleState.cpp` (e.g., `handleClosing()`, `handleC
 ## System Automations (rules)
 
 - When in `OPEN` state:
-	- Window control is driven by temperature only:
-		- If `temperature <= 18°C` the system commands the window to CLOSE.
-		- If `temperature > 18°C` the system commands the window to OPEN.
-	- LCD weather message (`outputs.lcd.messages[1]`) displays temperature, humidity and water-level readings and will update when any of those three readings change. Updates are throttled to at most once every 500 ms and the display hash is refreshed so the LCD will redraw the new message.
-	- Fan automation:
-		- If `temperature >= 27°C` the fan is turned ON in `FORWARD` direction at configured speed.
-		- If `temperature < 27°C` the fan is turned OFF.
+  - Window control is driven by temperature only:
+    - If `temperature <= 18°C` the system commands the window to CLOSE.
+    - If `temperature > 18°C` the system commands the window to OPEN.
+  - LCD weather message (`outputs.lcd.messages[1]`) displays temperature, humidity and water-level readings and will update when any of those three readings change. Updates are throttled to at most once every 500 ms and the display hash is refreshed so the LCD will redraw the new message.
+  - Fan automation:
+    - If `temperature >= 27°C` the fan is turned ON in `FORWARD` direction at configured speed.
+    - If `temperature < 27°C` the fan is turned OFF.
 - If `gasDetected` is true the system switches to `ALERT` state: opens the window, sets the fan to `REVERSE` at high speed, blinks LEDs, and sets the buzzer to `ALARM_GAS`.
 - NFC whitelist (`NFC_GRANTED_UIDS`) grants access and triggers the `GRANTED_ACCESS` buzzer and `OPENING` sequence when a recognized UID is presented.
 
@@ -74,7 +75,10 @@ Build using the Arduino IDE or `arduino-cli`. Example compile command used in th
 
 ```
 arduino-cli compile --fqbn esp32:esp32:esp32
+arduino-cli upload -p {PORT USB CONNECTED} --fqbn esp32:esp32:esp32
 ```
+
+PORT USB ESEMPLE: COM3 | COM5 
 
 ## Files of interest
 
