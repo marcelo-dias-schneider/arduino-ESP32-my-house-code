@@ -321,7 +321,7 @@ void logOutputsState()
   Serial.println("Gas Detected: " + String(inputs.gasDetected));
   Serial.println("Water Level: " + String(inputs.waterLevel));
   Serial.println("Temperature: " + String(inputs.temperature));
-  Serial.println("Humidity: " + String(inputs.humidity));  
+  Serial.println("Humidity: " + String(inputs.humidity));
   Serial.println("                         ");
   Serial.println("##### Outputs #####");
   Serial.println("Yellow LED Action: " + String(static_cast<int>(outputs.yellowLed.action)));
