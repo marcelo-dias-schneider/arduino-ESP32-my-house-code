@@ -52,6 +52,12 @@ const String NFC_GRANTED_UIDS[] = {
 #define DHT11PIN 17
 #include "dht.h"
 
+// WIFI
+#define WIFI_SSID "IV Novembre"
+#define WIFI_PASSWORD "Bertoldi150610"
+#define WIFI_PORT 80
+#include "my_wifi.h"
+
 // System states and variables
 enum class SystemStates
 {
@@ -204,5 +210,6 @@ void updateSystemState();
 void buildOutputsAction();
 void applyOutputs();
 void logOutputsState();
+void wifiRequest();
 
 #endif // SYSTEM_STATE_H

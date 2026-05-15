@@ -61,6 +61,8 @@ void setPins()
 
   // Buzzer
   buzzer.setTimbre(30); // Set timbre (0-127)
+
+  setupWiFi();
 }
 
 void setSystemState(SystemStates newState)

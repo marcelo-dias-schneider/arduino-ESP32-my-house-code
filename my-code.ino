@@ -13,5 +13,6 @@ void loop()
   readInputs();
   updateSystemState();
   buildOutputsAction();
+  wifiRequest();
   applyOutputs();
 }
