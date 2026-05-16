@@ -19,6 +19,52 @@ static void sendJson(WiFiClient &client, int statusCode, const String &body)
   client.println(body);
 }
 
+static int fromHexChar(char c)
+{
+  if (c >= '0' && c <= '9')
+    return c - '0';
+  if (c >= 'A' && c <= 'F')
+    return 10 + (c - 'A');
+  if (c >= 'a' && c <= 'f')
+    return 10 + (c - 'a');
+  return -1;
+}
+
+static String decodeUrlComponent(const String &encoded)
+{
+  String decoded;
+  decoded.reserve(encoded.length());
+
+  for (int i = 0; i < encoded.length(); i++)
+  {
+    char ch = encoded[i];
+    if (ch == '+')
+    {
+      decoded += ' ';
+    }
+    else if (ch == '%' && i + 2 < encoded.length())
+    {
+      int hi = fromHexChar(encoded[i + 1]);
+      int lo = fromHexChar(encoded[i + 2]);
+      if (hi >= 0 && lo >= 0)
+      {
+        decoded += char((hi << 4) | lo);
+        i += 2;
+      }
+      else
+      {
+        decoded += ch;
+      }
+    }
+    else
+    {
+      decoded += ch;
+    }
+  }
+
+  return decoded;
+}
+
 static void sendHomePage(WiFiClient &client)
 {
   String html =
@@ -74,6 +120,12 @@ static void sendHomePage(WiFiClient &client)
       "    <button data-action=\"/fan/forward\">Fan Forward</button>\n"
       "    <button data-action=\"/fan/reverse\">Fan Reverse</button>\n"
       "  </div>\n"
+      "  <p>LCD Message</p>\n"
+      "  <div class=\"actions\">\n"
+      "    <input id=\"lcdMessage\" type=\"text\" placeholder=\"Type LCD message\" maxlength=\"16\" />\n"
+      "    <button id=\"sendMessageBtn\" type=\"button\">Send Message</button>\n"
+      "  </div>\n"
+      "  <small>Max 16 characters (LCD width).</small>\n"
       "  <div id=\"statusCallout\" class=\"callout hidden\">\n"
       "    <div id=\"statusText\" class=\"callout-content\">Ready.</div>\n"
       "    <div id=\"statusBar\" class=\"callout-bar\"></div>\n"
@@ -84,6 +136,9 @@ static void sendHomePage(WiFiClient &client)
       "    const statusCallout = document.getElementById('statusCallout');\n"
       "    const statusText = document.getElementById('statusText');\n"
       "    const statusBar = document.getElementById('statusBar');\n"
+      "    const lcdInput = document.getElementById('lcdMessage');\n"
+      "    const sendMessageBtn = document.getElementById('sendMessageBtn');\n"
+      "    const lcdMaxLength = 16;\n"
       "    let statusTimer = null;\n"
       "\n"
       "    function showStatus(message, isError = false) {\n"
@@ -132,6 +187,35 @@ static void sendHomePage(WiFiClient &client)
       "          showStatus('Error: ' + err.message, true);\n"
       "        }\n"
       "      });\n"
+      "    });\n"
+      "\n"
+      "    sendMessageBtn.addEventListener('click', async () => {\n"
+      "      const rawMessage = lcdInput.value.trim();\n"
+      "\n"
+      "      if (!rawMessage) {\n"
+      "        showStatus('Error: Message cannot be empty', true);\n"
+      "        return;\n"
+      "      }\n"
+      "\n"
+      "      if (rawMessage.length > lcdMaxLength) {\n"
+      "        showStatus('Error: Max ' + lcdMaxLength + ' chars for LCD', true);\n"
+      "        return;\n"
+      "      }\n"
+      "\n"
+      "      const action = '/message/' + encodeURIComponent(rawMessage);\n"
+      "      showStatus('Sending ' + action + '...');\n"
+      "\n"
+      "      try {\n"
+      "        const response = await fetch(baseUrl + action);\n"
+      "        const data = await response.json();\n"
+      "        if (!response.ok || data.status !== 'ok') {\n"
+      "          throw new Error(data.message || 'Request failed');\n"
+      "        }\n"
+      "        showStatus('Success: ' + data.message);\n"
+      "        lcdInput.value = '';\n"
+      "      } catch (err) {\n"
+      "        showStatus('Error: ' + err.message, true);\n"
+      "      }\n"
       "    });\n"
       "  </script>\n"
       "</body>\n"
@@ -191,6 +275,30 @@ void wifiRequest()
   if (req == "/")
   {
     sendHomePage(client);
+  }
+  else if (req.startsWith("/message/"))
+  {
+    String encodedMessage = req.substring(9);
+    String message = decodeUrlComponent(encodedMessage);
+
+    if (message.length() == 0)
+    {
+      sendJson(client, 400, "{\"status\":\"error\",\"message\":\"Message cannot be empty\"}");
+    }
+    else if (message.length() > LCD_COLUMNS)
+    {
+      sendJson(client, 400, "{\"status\":\"error\",\"message\":\"Message too long for LCD\"}");
+    }
+    else
+    {
+      outputs.lcd.count = 1;
+      outputs.lcd.messages[0] = message;
+      outputs.lcd.delayTime = 2000;
+      outputs.lcd.currentHash = String(millis());
+
+      Serial.println("LCD message requested: " + message);
+      sendJson(client, 200, "{\"status\":\"ok\",\"message\":\"LCD message updated\"}");
+    }
   }
   else if (req == "/window/open")
   {
