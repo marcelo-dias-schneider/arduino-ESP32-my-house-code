@@ -90,6 +90,11 @@ static void sendHomePage(WiFiClient &client)
       "</head>\n"
       "<body>\n"
       "  <h1>Welcome to Marcelo Homes</h1>\n"
+      "  <p>System State</p>\n"
+      "  <div class=\"actions\">\n"
+      "    <button data-action=\"/state/opening\">Set OPENING</button>\n"
+      "    <button data-action=\"/state/closing\">Set CLOSING</button>\n"
+      "  </div>\n"
       "  <p>Window</p>\n"
       "  <div class=\"actions\">\n"
       "    <button data-action=\"/window/open\">Window Open</button>\n"
@@ -412,6 +417,18 @@ void wifiRequest()
     outputs.fan.speedAction = 200;
     Serial.println("Fan REVERSE requested");
     sendJson(client, 200, "{\"status\":\"ok\",\"message\":\"Fan set to REVERSE\"}");
+  }
+  else if (req == "/state/opening")
+  {
+    setSystemState(SystemStates::OPENING);
+    Serial.println("State OPENING requested");
+    sendJson(client, 200, "{\"status\":\"ok\",\"message\":\"State set to OPENING\"}");
+  }
+  else if (req == "/state/closing")
+  {
+    setSystemState(SystemStates::CLOSING);
+    Serial.println("State CLOSING requested");
+    sendJson(client, 200, "{\"status\":\"ok\",\"message\":\"State set to CLOSING\"}");
   }
   else
   {
