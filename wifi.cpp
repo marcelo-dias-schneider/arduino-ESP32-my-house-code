@@ -38,6 +38,7 @@ static void sendHomePage(WiFiClient &client)
       "</head>\n"
       "<body>\n"
       "  <h1>Welcome to Marcelo Homes</h1>\n"
+      "  <h2>Window</h2>\n"
       "  <div class=\"actions\">\n"
       "    <button data-action=\"/window/open\">Window Open</button>\n"
       "    <button data-action=\"/window/close\">Window Close</button>\n"
